@@ -5,6 +5,7 @@
 from socket import *
 from subprocess import call
 import os
+import termios, fcntl, sys, time
 
 serverIp = gethostbyname("%s.local" % gethostname())
 serverPort = 8003
@@ -51,6 +52,36 @@ def listenOnUdpForCall():
 	print "over"
 	call(["notify-send", request])
 	request = request.split(',')
+
+	fd = sys.stdin.fileno()
+
+	oldterm = termios.tcgetattr(fd)
+	newattr = termios.tcgetattr(fd)
+	newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+	termios.tcsetattr(fd, termios.TCSANOW, newattr)
+	oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+	fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
+
+	startTime = time.time()
+	nowTime = time.time()
+	try:
+	    while 1:
+	        nowTime = time.time()
+	        if nowTime - startTime > 10:
+	        	return
+	        try:
+	            c = sys.stdin.read(1)
+	            print str(repr(c))
+	            print "\\x0b"
+	            if str(repr(c)) == "'\\x0b'":
+	                print 'aesome'
+	                break
+	        except IOError: pass
+	finally:
+	    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+	    fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
+	print "key press detected"
+
 	# newConnection = socket(AF_INET, SOCK_STREAM)
 	# newConnection.bind(("localhost", 0))
 	# newConnection.connect((request[0], int(request[1])))
