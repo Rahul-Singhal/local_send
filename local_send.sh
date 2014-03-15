@@ -7,4 +7,4 @@ do
     args="$args"" $var"
 done
 
-python client.py $args
+python /usr/share/local_send/client.py $args
