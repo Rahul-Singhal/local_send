@@ -48,47 +48,55 @@ def listenOnUdpForCall():
 	global s_tcp
 	global s_udp
 	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes                                                                                                      
-	print "received message:", request
-	print "over"
-	call(["notify-send", request])
+	# print "received message:", request
+	# print "over"
+	
 	request = request.split(',')
 
-	fd = sys.stdin.fileno()
+	if(request[0]=="file"):
+		call(["notify-send", request[2]])
+		# receiveFile(request,addr);
+	elif(request[0] == "folder"):
+		call(["notify-send", request[2]])
+		# receiveFolder(request,addr);
+	elif(request[0] == "message"):
+		call(["notify-send", request[1]])
 
-	oldterm = termios.tcgetattr(fd)
-	newattr = termios.tcgetattr(fd)
-	newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-	termios.tcsetattr(fd, termios.TCSANOW, newattr)
-	oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
-	fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
+	if(request[0] != "message"):
+		fd = sys.stdin.fileno()
 
-	startTime = time.time()
-	nowTime = time.time()
-	try:
-	    while 1:
-	        nowTime = time.time()
-	        if nowTime - startTime > 10:
-	        	return
-	        try:
-	            c = sys.stdin.read(1)
-	            print str(repr(c))
-	            print "\\x0b"
-	            if str(repr(c)) == "'\\x0b'":
-	                print 'aesome'
-	                break
-	        except IOError: pass
-	finally:
-	    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-	    fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
-	print "key press detected"
+		oldterm = termios.tcgetattr(fd)
+		newattr = termios.tcgetattr(fd)
+		newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
+		termios.tcsetattr(fd, termios.TCSANOW, newattr)
+		oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
+		fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
 
-	# newConnection = socket(AF_INET, SOCK_STREAM)
-	# newConnection.bind(("localhost", 0))
-	# newConnection.connect((request[0], int(request[1])))
+		startTime = time.time()
+		nowTime = time.time()
+		try:
+		    while 1:
+		        nowTime = time.time()
+		        if nowTime - startTime > 10:
+		        	return
+		        try:
+		            c = sys.stdin.read(1)
+		            print str(repr(c))
+		            print "\\x0b"
+		            if str(repr(c)) == "'\\x0b'":
+		                print 'aesome'
+		                break
+		        except IOError: pass
+		finally:
+		    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
+		    fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
+		print "key press detected"
+
 	if(request[0]=="file"):
 		receiveFile(request,addr);
 	elif(request[0] == "folder"):
 		receiveFolder(request,addr);
+
 
 def receiveFile(request,addr):
 	createTcpSocket()

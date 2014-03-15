@@ -4,6 +4,7 @@
 # a client is always listening on a udp port for the incoming connections
 from socket import *
 from subprocess import *
+import sys
 
 serverIp = gethostbyname("%s.local" % gethostname())
 serverPort = 8003
@@ -11,7 +12,6 @@ serverPort = 8003
 s_tcp = socket(AF_INET, SOCK_STREAM)
 s_udp = socket(AF_INET, SOCK_DGRAM)
 myTcpPort = 0
-user = "userName"
 
 # def createTcpSocket():
 # 	global s_tcp
@@ -23,7 +23,6 @@ user = "userName"
 # 	myTcpPort = addrInfo[1]
 
 def createUdpSocket():
-	global user
 	global myTcpPort
 	global s_udp
 	# myIp = gethostbyname("%s.local" % gethostname())
@@ -57,48 +56,47 @@ def createUdpSocket():
 # 	newConnection, friendAddress = s_tcp.accept()
 # 	print "connected!!" 
 
-def makeOnline():
-	global user
-	message=""
-	message += "folder,send,";
-	print message
+def sendFile(filename):
+	message = "file,"+filename ;
+	message += "," + gethostbyname("%s.local" % gethostname()) + " requesting to send a file."
 	s_udp.sendto(message,("localhost", 8003))
 	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
-	print request
-	sendFolder(int(request))
-
-def sendFile(rec_port):
+	# print request
 	global s_tcp
 	global myTcpPort
 	s_tcp = socket(AF_INET, SOCK_STREAM)
-	s_tcp.connect(("localhost", rec_port))
+	s_tcp.connect(("localhost", int(request)))
 	# s_tcp.send("hey there dellilah")
-	file = open("sendfile", "rb")
+	file = open(filename, "rb")
 	chunk = file.read(65536)
 	while chunk:
 		s_tcp.send(chunk)
 		chunk = file.read(65536)
 
-def sendFolder():
+def sendMessage(send_message):
+	message = "message,Message from " ;
+	message += gethostbyname("%s.local" % gethostname()) + ": " + send_message
+	s_udp.sendto(message,("localhost", 8003))
+
+def sendFolder(folderName):
 	global user
-	cmd = ["find", ".","-type","f"]
+	cmd = ["find", folderName,"-type","f"]
 	out = check_output(cmd).strip()
-	print out
+	# print out
 	file_list = out.split('\n')
 
-	message=""
-	message += "folder,";
-	message += out;
+	message = "folder,"+out;
+	message += "," + gethostbyname("%s.local" % gethostname()) + " requesting to send a folder."
 	# print message
 	s_udp.sendto(message,("localhost", 8003))
 	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
-	print request
+	# print request
 	rec_port = int(request)
 
 	global s_tcp
 	global myTcpPort
 	s_tcp = socket(AF_INET, SOCK_STREAM)
-	s_tcp.connect(("localhost", rec_port))
+	s_tcp.connect(("localhost", int(request)))
 	# s_tcp.send("hey there dellilah")
 	for filename in file_list:
 		file = open(filename, "rb")
@@ -108,21 +106,38 @@ def sendFolder():
 			chunk = file.read(65536)
 		file.close()
 
+def check_flags():
+	print sys.argv[1]
+	args = str(sys.argv)
+	args = args.translate(None,'\'').strip('[]').split(',')
+	# print args
+	# m for message, f for file and r for folder
+	if(len(sys.argv) != 3):
+		if(args[1].strip(' ') == "-m"):
+			# print ''.join(args[2:])
+			createUdpSocket()
+			sendMessage(''.join(args[2:]))
+		else:
+			print "Wrong command line arguments!"
+			sys.exit(0)
+	else:
+		if(args[1].strip(' ') == "-f"):
+			createUdpSocket()
+			sendFile(args[2].strip(' '))
+		elif(args[1].strip(' ') == "-r"):
+			createUdpSocket()
+			sendFolder(args[2].strip(' '))
+		elif(args[1].strip(' ') == "-m"):
+			createUdpSocket()
+			sendMessage(args[2].strip(' '))
+		else:
+			print "Wrong command line arguments!"
+			sys.exit(0)
 
 
-# main starts here
-# user = raw_input("Enter your name: ")
-# createTcpSocket()
+check_flags()
 
-# action = input("Press 1 to start video chat with a friend and 0 to wait for a call!!")
-# print action
-# if action == 1:
-# 	createUdpSocket()
-# 	connectToFriend()
-# 	startSession()
-# else:
-createUdpSocket()
-sendFolder()
+
 
 # HOST = ''
 # PORT = 8001
