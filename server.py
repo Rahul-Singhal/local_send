@@ -15,6 +15,8 @@ s_udp = socket(AF_INET, SOCK_DGRAM)
 myTcpPort = 0
 user = "userName"
 
+downloadDirectory = os.getenv("HOME")+"/Downloads/myDownloads/"
+
 def createTcpSocket():
 	global s_tcp
 	global myTcpPort
@@ -41,61 +43,27 @@ def createUdpSocket():
 # 	message += user + "," + friend + "," + `myTcpPort`;
 # 	#print message
 # 	s_udp.sendto(message,("localhost", serverPort))
-# 	response, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes                                                                                                      
+# 	response, addr = s_udp.recvfrom(65536) # buffer size is 65536 bytes                                                                                                      
 # 	print "received message:", response
 
 def listenOnUdpForCall():
 	global s_tcp
 	global s_udp
-	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes                                                                                                      
+	request, addr = s_udp.recvfrom(65536) # buffer size is 65536 bytes                                                                                                      
 	# print "received message:", request
 	# print "over"
-	
+	# print "request hai ye"
+	# print request
 	request = request.split(',')
 
 	if(request[0]=="file"):
 		call(["notify-send", request[2], "-i",  "/usr/share/pixmaps/local_send_file.png"])
-		# receiveFile(request,addr);
-	elif(request[0] == "folder"):
-		call(["notify-send", request[2], "-i",  "/usr/share/pixmaps/local_send_folder.png"])
-		# receiveFolder(request,addr);
-	elif(request[0] == "message"):
-		call(["notify-send", request[1], "-i",  "/usr/share/pixmaps/local_send_message.png"])
-
-	if(request[0] != "message"):
-		fd = sys.stdin.fileno()
-
-		oldterm = termios.tcgetattr(fd)
-		newattr = termios.tcgetattr(fd)
-		newattr[3] = newattr[3] & ~termios.ICANON & ~termios.ECHO
-		termios.tcsetattr(fd, termios.TCSANOW, newattr)
-		oldflags = fcntl.fcntl(fd, fcntl.F_GETFL)
-		fcntl.fcntl(fd, fcntl.F_SETFL, oldflags | os.O_NONBLOCK)
-
-		startTime = time.time()
-		nowTime = time.time()
-		try:
-		    while 1:
-		        nowTime = time.time()
-		        if nowTime - startTime > 10:
-		        	return
-		        try:
-		            c = sys.stdin.read(1)
-		            print str(repr(c))
-		            print "\\x0b"
-		            if str(repr(c)) == "'\\x0b'":
-		                print 'aesome'
-		                break
-		        except IOError: pass
-		finally:
-		    termios.tcsetattr(fd, termios.TCSAFLUSH, oldterm)
-		    fcntl.fcntl(fd, fcntl.F_SETFL, oldflags)
-		print "key press detected"
-
-	if(request[0]=="file"):
 		receiveFile(request,addr);
 	elif(request[0] == "folder"):
+		call(["notify-send", request[2], "-i",  "/usr/share/pixmaps/local_send_folder.png"])
 		receiveFolder(request,addr);
+	elif(request[0] == "message"):
+		call(["notify-send", request[1], "-i",  "/usr/share/pixmaps/local_send_message.png"])
 
 
 def receiveFile(request,addr):
@@ -114,13 +82,13 @@ def receiveFile(request,addr):
 
 def receiveFolder(request,addr):
 	createTcpSocket()
-	print myTcpPort
+	# print myTcpPort
 	s_udp.sendto(str(myTcpPort),addr)
 	con, ad = s_tcp.accept()
 	fileList = request[1].split('\n');
 	for filename in fileList:
 		dirname = os.path.split(filename)[0]
-		print "DIRNAME "+dirname
+		# print "DIRNAME "+dirname
 		if (dirname != "" and not os.path.exists(dirname)):
 			os.makedirs(dirname)
 		recFile = open(filename, "wb")
@@ -161,6 +129,8 @@ def receiveFolder(request,addr):
 # 	connectToFriend()
 # 	startSession()
 # else:
+call(["mkdir","-p",os.getenv("HOME")+"/Downloads/myDownloads/"])
+os.chdir(os.getenv("HOME")+"/Downloads/myDownloads/")
 createUdpSocket()
 while 1:
 	listenOnUdpForCall()
@@ -173,6 +143,6 @@ while 1:
 # 	message = raw_input("Your Message: ") 
 # 	s.send(message) 
 # 	print "Awaiting reply" 
-# 	reply = s.recv(1024) # 1024 is max data that can be received 
+# 	reply = s.recv(65536) # 65536 is max data that can be received 
 # 	print "Received ", repr(reply)
 # s.close()

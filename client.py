@@ -5,8 +5,10 @@
 from socket import *
 from subprocess import *
 import sys
+import os
 
-serverIp = gethostbyname("%s.local" % gethostname())
+myIp = gethostbyname("%s.local" % gethostname())
+serverIp = ""
 serverPort = 8003
 
 s_tcp = socket(AF_INET, SOCK_STREAM)
@@ -57,38 +59,54 @@ def createUdpSocket():
 # 	print "connected!!" 
 
 def sendFile(filename):
-	message = "file,"+filename ;
+	global serverIp
+	sendFilename = os.path.split(filename)[1]
+	message = "file,"+sendFilename ;
 	message += "," + gethostbyname("%s.local" % gethostname()) + " requesting to send a file."
-	s_udp.sendto(message,("localhost", 8003))
+	s_udp.sendto(message,(serverIp, 8003))
 	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
 	# print request
 	global s_tcp
 	global myTcpPort
 	s_tcp = socket(AF_INET, SOCK_STREAM)
-	s_tcp.connect(("localhost", int(request)))
+	s_tcp.connect((serverIp, int(request)))
 	# s_tcp.send("hey there dellilah")
 	file = open(filename, "rb")
-	chunk = file.read(65536)
+	chunk = file.read(1024)
 	while chunk:
 		s_tcp.send(chunk)
-		chunk = file.read(65536)
+		chunk = file.read(1024)
 
 def sendMessage(send_message):
+	global serverIp
 	message = "message,Message from " ;
 	message += gethostbyname("%s.local" % gethostname()) + ": " + send_message
-	s_udp.sendto(message,("localhost", 8003))
+	# print message
+	print serverIp
+	s_udp.sendto(message,(serverIp, 8003))
 
 def sendFolder(folderName):
+	folderName = folderName.rstrip('/')
 	global user
-	cmd = ["find", folderName,"-type","f"]
+	global serverIp
+	changeFolder = os.path.split(folderName)[0]
+	cwd = os.getcwd()
+	if changeFolder!="":
+		os.chdir(changeFolder)
+	# print "changeFolder = " + changeFolder
+	# print "cwd = " + cwd
+	# print "foldername = " + folderName
+	# print "culprit =" + os.path.split(folderName)[1]
+	cmd = ["find", os.path.split(folderName)[1],"-type","f"]
 	out = check_output(cmd).strip()
+	# print " main hoon out"
 	# print out
 	file_list = out.split('\n')
-
 	message = "folder,"+out;
 	message += "," + gethostbyname("%s.local" % gethostname()) + " requesting to send a folder."
+	# print " aur main hoon message"
 	# print message
-	s_udp.sendto(message,("localhost", 8003))
+	s_udp.sendto(message,(serverIp, 8003))
 	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
 	# print request
 	rec_port = int(request)
@@ -96,40 +114,48 @@ def sendFolder(folderName):
 	global s_tcp
 	global myTcpPort
 	s_tcp = socket(AF_INET, SOCK_STREAM)
-	s_tcp.connect(("localhost", int(request)))
+	s_tcp.connect((serverIp, int(request)))
 	# s_tcp.send("hey there dellilah")
 	for filename in file_list:
+		print "filename = "+filename
 		file = open(filename, "rb")
-		chunk = file.read(65536)
+		chunk = file.read(1024)
 		while chunk:
 			s_tcp.send(chunk)
-			chunk = file.read(65536)
+			chunk = file.read(1024)
 		file.close()
+	os.chdir(cwd)
 
 def check_flags():
-	print sys.argv[1]
+	# print sys.argv[1]
+	global serverIp
 	args = str(sys.argv)
 	args = args.translate(None,'\'').strip('[]').split(',')
 	# print args
 	# m for message, f for file and r for folder
-	if(len(sys.argv) != 3):
-		if(args[1].strip(' ') == "-m"):
+
+	if(len(sys.argv) != 4):
+		if(args[2].strip(' ') == "-m"):
 			# print ''.join(args[2:])
+			serverIp = args[1].strip(' ')
 			createUdpSocket()
-			sendMessage(''.join(args[2:]))
+			sendMessage(''.join(args[3:]))
 		else:
 			print "Wrong command line arguments!"
 			sys.exit(0)
 	else:
-		if(args[1].strip(' ') == "-f"):
+		if(args[2].strip(' ') == "-f"):
+			serverIp = args[1].strip(' ')
 			createUdpSocket()
-			sendFile(args[2].strip(' '))
-		elif(args[1].strip(' ') == "-r"):
+			sendFile(args[3].strip(' '))
+		elif(args[2].strip(' ') == "-r"):
+			serverIp = args[1].strip(' ')
 			createUdpSocket()
-			sendFolder(args[2].strip(' '))
-		elif(args[1].strip(' ') == "-m"):
+			sendFolder(args[3].strip(' '))
+		elif(args[2].strip(' ') == "-m"):
+			serverIp = args[1].strip(' ')
 			createUdpSocket()
-			sendMessage(args[2].strip(' '))
+			sendMessage(args[3].strip(' '))
 		else:
 			print "Wrong command line arguments!"
 			sys.exit(0)
