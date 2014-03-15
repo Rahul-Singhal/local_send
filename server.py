@@ -54,13 +54,13 @@ def listenOnUdpForCall():
 	request = request.split(',')
 
 	if(request[0]=="file"):
-		call(["notify-send", request[2]])
+		call(["notify-send", request[2], "-i",  "/usr/share/pixmaps/local_send_file.png"])
 		# receiveFile(request,addr);
 	elif(request[0] == "folder"):
-		call(["notify-send", request[2]])
+		call(["notify-send", request[2], "-i",  "/usr/share/pixmaps/local_send_folder.png"])
 		# receiveFolder(request,addr);
 	elif(request[0] == "message"):
-		call(["notify-send", request[1]])
+		call(["notify-send", request[1], "-i",  "/usr/share/pixmaps/local_send_message.png"])
 
 	if(request[0] != "message"):
 		fd = sys.stdin.fileno()
@@ -162,7 +162,8 @@ def receiveFolder(request,addr):
 # 	startSession()
 # else:
 createUdpSocket()
-listenOnUdpForCall()
+while 1:
+	listenOnUdpForCall()
 
 # HOST = ''
 # PORT = 8001
