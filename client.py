@@ -82,7 +82,7 @@ def sendMessage(send_message):
 	message = "message,Message from " ;
 	message += gethostbyname("%s.local" % gethostname()) + ": " + send_message
 	# print message
-	print serverIp
+	# print serverIp
 	s_udp.sendto(message,(serverIp, 8003))
 
 def sendFolder(folderName):
@@ -107,23 +107,29 @@ def sendFolder(folderName):
 	# print " aur main hoon message"
 	# print message
 	s_udp.sendto(message,(serverIp, 8003))
-	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
+	# request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
 	# print request
-	rec_port = int(request)
+	# rec_port = int(request)
 
 	global s_tcp
 	global myTcpPort
-	s_tcp = socket(AF_INET, SOCK_STREAM)
-	s_tcp.connect((serverIp, int(request)))
+	
 	# s_tcp.send("hey there dellilah")
 	for filename in file_list:
-		print "filename = "+filename
+		# print "loop mein aaya"
+		request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
+		rec_port = int(request)
+		# print "request hoon main -> " + request
+		s_tcp = socket(AF_INET, SOCK_STREAM)
+		s_tcp.connect((serverIp, int(request)))
+		# print "filename = "+filename
 		file = open(filename, "rb")
 		chunk = file.read(1024)
 		while chunk:
 			s_tcp.send(chunk)
 			chunk = file.read(1024)
 		file.close()
+		s_tcp.close()
 	os.chdir(cwd)
 
 def check_flags():

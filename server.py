@@ -81,12 +81,12 @@ def receiveFile(request,addr):
 	recFile.close();
 
 def receiveFolder(request,addr):
-	createTcpSocket()
-	# print myTcpPort
-	s_udp.sendto(str(myTcpPort),addr)
-	con, ad = s_tcp.accept()
 	fileList = request[1].split('\n');
 	for filename in fileList:
+		createTcpSocket()
+		# print myTcpPort
+		s_udp.sendto(str(myTcpPort),addr)
+		con, ad = s_tcp.accept()
 		dirname = os.path.split(filename)[0]
 		# print "DIRNAME "+dirname
 		if (dirname != "" and not os.path.exists(dirname)):
@@ -99,6 +99,7 @@ def receiveFolder(request,addr):
 			message = con.recv(1024)
 			# print message
 		recFile.close();
+		s_tcp.close()
 
 
 
