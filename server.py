@@ -141,8 +141,8 @@ def receiveFolder(request,addr):
 # else:
 call(["mkdir","-p",os.getenv("HOME")+"/Downloads/myDownloads/"])
 os.chdir(os.getenv("HOME")+"/Downloads/myDownloads/")
+createUdpSocket()
 while 1:
-	createUdpSocket()
 	listenOnUdpForCall()
 
 # HOST = ''

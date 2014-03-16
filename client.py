@@ -32,8 +32,9 @@ def createUdpSocket():
 	# myIp = gethostbyname("%s.local" % gethostname())
 	# print "hey"
 	s_udp = socket(AF_INET, SOCK_DGRAM)
+	s_udp.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
 	myIp = gethostbyname("%s.local" % gethostname())
-	s_udp.bind((myIp, 8003))
+	s_udp.bind((myIp, 0))
 
 # def connectToFriend():
 # 	friend = raw_input("Enter your friend's name: ")
@@ -175,13 +176,7 @@ def check_flags():
 			sys.exit(0)
 
 
-if call(["fuser", "8003/udp"], stdout=PIPE, stderr=PIPE) != 0:
-	createUdpSocket()
-else:
-	pid = check_output(["fuser" , "8003/udp"],stderr=PIPE).strip()
-	call(["kill", "-9", pid], stdout=PIPE, stderr=PIPE)
-	print pid
-	createUdpSocket()
+createUdpSocket()
 check_flags()
 
 
