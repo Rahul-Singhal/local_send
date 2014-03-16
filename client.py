@@ -12,7 +12,7 @@ serverIp = ""
 serverPort = 8003
 
 s_tcp = socket(AF_INET, SOCK_STREAM)
-s_udp = socket(AF_INET, SOCK_DGRAM)
+
 myTcpPort = 0
 
 # def createTcpSocket():
@@ -27,9 +27,12 @@ myTcpPort = 0
 def createUdpSocket():
 	global myTcpPort
 	global s_udp
+	global myIp
 	# myIp = gethostbyname("%s.local" % gethostname())
 	# print "hey"
-	s_udp.connect(("localhost", 0))
+	s_udp = socket(AF_INET, SOCK_DGRAM)
+	myIp = gethostbyname("%s.local" % gethostname())
+	s_udp.bind((myIp, 8003))
 
 # def connectToFriend():
 # 	friend = raw_input("Enter your friend's name: ")
@@ -63,6 +66,9 @@ def sendFile(filename):
 	sendFilename = os.path.split(filename)[1]
 	message = "file,"+sendFilename ;
 	message += "," + gethostbyname("%s.local" % gethostname()) + " requesting to send a file."
+	# print serverIp + "hey there"
+	# sys.exit(0)
+	# print message
 	s_udp.sendto(message,(serverIp, 8003))
 	request, addr = s_udp.recvfrom(1024) # buffer size is 1024 bytes  
 	# print request

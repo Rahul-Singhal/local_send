@@ -11,7 +11,7 @@ serverIp = gethostbyname("%s.local" % gethostname())
 serverPort = 8003
 
 s_tcp = socket(AF_INET, SOCK_STREAM)
-s_udp = socket(AF_INET, SOCK_DGRAM)
+
 myTcpPort = 0
 user = "userName"
 
@@ -21,7 +21,7 @@ def createTcpSocket():
 	global s_tcp
 	global myTcpPort
 	s_tcp = socket(AF_INET, SOCK_STREAM)
-	s_tcp.bind(("localhost", 0))
+	s_tcp.bind((serverIp, 0))
 	addrInfo = s_tcp.getsockname()
 	s_tcp.listen(5)
 	myTcpPort = addrInfo[1]
@@ -30,9 +30,16 @@ def createUdpSocket():
 	global user
 	global myTcpPort
 	global s_udp
+	global serverIp
 	# myIp = gethostbyname("%s.local" % gethostname())
 	# print "hey"
-	s_udp.bind(("localhost", 8003))
+	s_udp = socket(AF_INET, SOCK_DGRAM)
+	serverIp = gethostbyname("%s.local" % gethostname())
+	# print serverIp
+	# print gethostname()
+	# print gethostbyname(gethostname())
+	# sys.exit(0)
+	s_udp.bind((serverIp, 8003))
 
 # def connectToFriend():
 # 	friend = raw_input("Enter your friend's name: ")
@@ -68,6 +75,8 @@ def listenOnUdpForCall():
 
 def receiveFile(request,addr):
 	createTcpSocket()
+	# print str(myTcpPort) + "hey there tcp port "
+	# print addr
 	s_udp.sendto(str(myTcpPort),addr)
 	con, ad = s_tcp.accept()
 	filename = request[1]
@@ -132,8 +141,8 @@ def receiveFolder(request,addr):
 # else:
 call(["mkdir","-p",os.getenv("HOME")+"/Downloads/myDownloads/"])
 os.chdir(os.getenv("HOME")+"/Downloads/myDownloads/")
-createUdpSocket()
 while 1:
+	createUdpSocket()
 	listenOnUdpForCall()
 
 # HOST = ''
