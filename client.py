@@ -12,6 +12,7 @@ serverIp = ""
 serverPort = 8003
 
 s_tcp = socket(AF_INET, SOCK_STREAM)
+s_udp = socket(AF_INET, SOCK_DGRAM)
 
 myTcpPort = 0
 
@@ -85,6 +86,7 @@ def sendFile(filename):
 
 def sendMessage(send_message):
 	global serverIp
+	global s_udp
 	message = "message,Message from " ;
 	message += gethostbyname("%s.local" % gethostname()) + ": " + send_message
 	# print message
@@ -150,7 +152,7 @@ def check_flags():
 		if(args[2].strip(' ') == "-m"):
 			# print ''.join(args[2:])
 			serverIp = args[1].strip(' ')
-			createUdpSocket()
+			# createUdpSocket()
 			sendMessage(''.join(args[3:]))
 		else:
 			print "Wrong command line arguments!"
@@ -158,21 +160,26 @@ def check_flags():
 	else:
 		if(args[2].strip(' ') == "-f"):
 			serverIp = args[1].strip(' ')
-			createUdpSocket()
+			# createUdpSocket()
 			sendFile(args[3].strip(' '))
 		elif(args[2].strip(' ') == "-r"):
 			serverIp = args[1].strip(' ')
-			createUdpSocket()
+			# createUdpSocket()
 			sendFolder(args[3].strip(' '))
 		elif(args[2].strip(' ') == "-m"):
 			serverIp = args[1].strip(' ')
-			createUdpSocket()
+			# createUdpSocket()
 			sendMessage(args[3].strip(' '))
 		else:
 			print "Wrong command line arguments!"
 			sys.exit(0)
 
 
+if call(["fuser", "8003/udp"], stdout=PIPE, stderr=PIPE) != 0:
+	createUdpSocket()
+else:
+	myIp = gethostbyname("%s.local" % gethostname())
+	s_udp.connect((myIp, 8003))
 check_flags()
 
 
