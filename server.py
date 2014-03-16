@@ -7,7 +7,7 @@ from subprocess import call
 import os
 import termios, fcntl, sys, time
 
-serverIp = gethostbyname("%s.local" % gethostname())
+serverIp = check_output(["hostname","-I"]).strip()
 serverPort = 8003
 
 s_tcp = socket(AF_INET, SOCK_STREAM)
@@ -34,7 +34,8 @@ def createUdpSocket():
 	# myIp = gethostbyname("%s.local" % gethostname())
 	# print "hey"
 	s_udp = socket(AF_INET, SOCK_DGRAM)
-	serverIp = gethostbyname("%s.local" % gethostname())
+	# serverIp = gethostbyname("%s.local" % gethostname())
+	serverIp = check_output(["hostname","-I"]).strip()
 	# print serverIp
 	# print gethostname()
 	# print gethostbyname(gethostname())

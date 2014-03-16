@@ -7,7 +7,7 @@ from subprocess import *
 import sys
 import os
 
-myIp = gethostbyname("%s.local" % gethostname())
+myIp = check_output(["hostname","-I"]).strip()
 serverIp = ""
 serverPort = 8003
 
@@ -33,7 +33,7 @@ def createUdpSocket():
 	# print "hey"
 	s_udp = socket(AF_INET, SOCK_DGRAM)
 	s_udp.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-	myIp = gethostbyname("%s.local" % gethostname())
+	myIp = check_output(["hostname","-I"]).strip()
 	s_udp.bind((myIp, 0))
 
 # def connectToFriend():
@@ -67,7 +67,7 @@ def sendFile(filename):
 	global serverIp
 	sendFilename = os.path.split(filename)[1]
 	message = "file,"+sendFilename ;
-	message += "," + gethostbyname("%s.local" % gethostname()) + " requesting to send a file."
+	message += "," + check_output(["hostname","-I"]).strip() + " requesting to send a file."
 	# print serverIp + "hey there"
 	# sys.exit(0)
 	# print message
@@ -89,7 +89,7 @@ def sendMessage(send_message):
 	global serverIp
 	global s_udp
 	message = "message,Message from " ;
-	message += gethostbyname("%s.local" % gethostname()) + ": " + send_message
+	message += check_output(["hostname","-I"]).strip() + ": " + send_message
 	# print message
 	# print serverIp
 	s_udp.sendto(message,(serverIp, 8003))
@@ -112,7 +112,7 @@ def sendFolder(folderName):
 	# print out
 	file_list = out.split('\n')
 	message = "folder,"+out;
-	message += "," + gethostbyname("%s.local" % gethostname()) + " requesting to send a folder."
+	message += "," + check_output(["hostname","-I"]).strip() + " requesting to send a folder."
 	# print " aur main hoon message"
 	# print message
 	s_udp.sendto(message,(serverIp, 8003))
