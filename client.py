@@ -178,8 +178,10 @@ def check_flags():
 if call(["fuser", "8003/udp"], stdout=PIPE, stderr=PIPE) != 0:
 	createUdpSocket()
 else:
-	myIp = gethostbyname("%s.local" % gethostname())
-	s_udp.connect((myIp, 8003))
+	pid = check_output(["fuser" , "8003/udp"],stderr=PIPE).strip()
+	call(["kill", "-9", pid], stdout=PIPE, stderr=PIPE)
+	print pid
+	createUdpSocket()
 check_flags()
 
 
