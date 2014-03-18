@@ -3,7 +3,7 @@
 
 # a client is always listening on a udp port for the incoming connections
 from socket import *
-from subprocess import call
+from subprocess import *
 import os
 import termios, fcntl, sys, time
 
